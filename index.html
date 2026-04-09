@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Streamflix — Perfis</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Montserrat:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --red: #E50914;
+      --red-dark: #b0060f;
+      --black: #000;
+      --dark: #141414;
+      --card: #1f1f1f;
+      --border: #404040;
+      --text: #fff;
+      --muted: #999;
+      --font-display: 'Bebas Neue', sans-serif;
+      --font-body: 'Montserrat', sans-serif;
+      --t: 0.22s ease;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { height: 100%; }
+    body {
+      min-height: 100%; background: var(--black); color: var(--text);
+      font-family: var(--font-body); display: flex; flex-direction: column; align-items: stretch;
+    }
+
+    /* NAVBAR */
+    .navbar {
+      padding: 20px 4%;
+      background: linear-gradient(to bottom, rgba(0,0,0,0.9), transparent);
+      position: fixed; top: 0; left: 0; right: 0; z-index: 50;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .logo { font-family: var(--font-display); font-size: 2rem; letter-spacing: 2px; color: var(--red); text-shadow: 0 0 30px rgba(229,9,20,0.4); }
+    .back-btn {
+      background: none; border: 1px solid #555; color: var(--muted);
+      font-family: var(--font-body); font-size: 13px; font-weight: 600;
+      padding: 8px 18px; border-radius: 3px; cursor: pointer; letter-spacing: 0.5px;
+      display: flex; align-items: center; gap: 6px; transition: all 0.2s;
+    }
+    .back-btn:hover { border-color: #fff; color: #fff; }
+    .back-btn svg { width: 14px; height: 14px; }
+
+    /* SCREENS */
+    .screen {
+      flex: 1; display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      padding: 110px 20px 60px; min-height: 100vh;
+      animation: fadeIn 0.3s ease both;
+    }
+    .screen.hidden { display: none; }
+    @keyframes fadeIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+
+    .screen-title { font-size: clamp(1.6rem, 4vw, 2.4rem); font-weight: 400; letter-spacing: 0.5px; color: var(--text); margin-bottom: 40px; text-align: center; }
+    .screen-sub { font-size: 15px; color: var(--muted); margin-top: -28px; margin-bottom: 36px; text-align: center; }
+
+    /* PROFILES GRID */
+    .profiles-grid { display: flex; flex-wrap: wrap; gap: 24px; justify-content: center; margin-bottom: 48px; }
+
+    .profile-btn {
+      display: flex; flex-direction: column; align-items: center; gap: 12px;
+      background: none; border: none; cursor: pointer; position: relative;
+      padding: 0; font-family: var(--font-body);
+    }
+    .avatar-wrap { position: relative; width: 130px; height: 130px; }
+    .avatar {
+      width: 130px; height: 130px; border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 3.2rem; font-weight: 800; color: rgba(255,255,255,0.9);
+      transition: transform var(--t), filter var(--t); position: relative; overflow: hidden; user-select: none;
+    }
+    .avatar span { transition: transform var(--t); pointer-events: none; }
+    .avatar svg { width: 52px; height: 52px; color: rgba(255,255,255,0.7); }
+
+    .avatar-ring { position: absolute; inset: -3px; border-radius: 10px; border: 3px solid transparent; transition: border-color var(--t); pointer-events: none; }
+    .profile-btn:hover .avatar-ring { border-color: var(--text); }
+    .profile-btn:hover .avatar { transform: scale(1.05); border-radius: 4px; }
+
+    .profile-name { font-size: 14px; font-weight: 500; color: var(--muted); letter-spacing: 0.3px; transition: color var(--t); text-align: center; }
+    .profile-btn:hover .profile-name { color: var(--text); }
+
+    .kids-badge { position: absolute; top: -8px; right: -8px; background: var(--red); color: #fff; font-size: 9px; font-weight: 800; letter-spacing: 1px; padding: 3px 7px; border-radius: 3px; z-index: 2; }
+
+    .add-avatar { background: transparent !important; border: 3px solid var(--border) !important; }
+    .add-avatar svg { width: 42px; height: 42px; color: var(--border); transition: color var(--t); }
+    .add-btn:hover .add-avatar { background: rgba(255,255,255,0.05) !important; border-color: #aaa !important; }
+    .add-btn:hover .add-avatar svg { color: #ccc; }
+
+    /* EDIT OVERLAY (manage mode) */
+    .editable .avatar-wrap { cursor: pointer; }
+    .edit-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.65); border-radius: 8px; display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity var(--t); }
+    .edit-overlay svg { width: 34px; height: 34px; color: #fff; }
+    .editable:hover .edit-overlay { opacity: 1; }
+    .editable:hover .avatar { transform: none; border-radius: 8px; }
+
+    /* MANAGE BTN */
+    .btn-manage { background: none; border: 1px solid var(--muted); color: var(--muted); font-family: var(--font-body); font-size: 14px; font-weight: 600; padding: 11px 36px; letter-spacing: 2px; text-transform: uppercase; cursor: pointer; border-radius: 3px; transition: all var(--t); }
+    .btn-manage:hover { border-color: var(--text); color: var(--text); background: rgba(255,255,255,0.05); }
+
+    /* EDIT LAYOUT */
+    .edit-layout { display: flex; gap: 48px; align-items: flex-start; max-width: 780px; width: 100%; padding: 0 4%; }
+    .edit-layout.centered { align-items: center; }
+
+    .edit-avatar-col { display: flex; flex-direction: column; align-items: center; gap: 20px; flex-shrink: 0; }
+    .edit-avatar-wrap-lg { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+    .edit-avatar-wrap-lg .avatar { width: 130px; height: 130px; border-radius: 10px; font-size: 3.2rem; }
+    .new-avatar { background: #2a2a2a !important; border: 3px dashed #555 !important; }
+
+    .change-avatar-btn { background: none; border: 1px solid var(--border); color: var(--muted); font-family: var(--font-body); font-size: 12px; padding: 6px 16px; cursor: pointer; border-radius: 3px; transition: all var(--t); letter-spacing: 0.5px; }
+    .change-avatar-btn:hover { border-color: #aaa; color: #fff; }
+
+    /* AVATAR PICKER */
+    .avatar-picker { width: 100%; }
+    .picker-label { font-size: 12px; color: var(--muted); margin-bottom: 10px; letter-spacing: 0.5px; text-align: center; }
+    .avatar-options { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; max-width: 200px; margin: 0 auto; }
+    .av-opt { width: 56px; height: 56px; border-radius: 6px; border: 3px solid transparent; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; transition: transform var(--t), border-color var(--t); }
+    .av-opt:hover { transform: scale(1.1); }
+    .av-opt.active { border-color: var(--text); transform: scale(1.08); }
+
+    /* FORM */
+    .edit-form-col { flex: 1; display: flex; flex-direction: column; gap: 20px; min-width: 260px; }
+    .form-group { display: flex; flex-direction: column; gap: 7px; }
+    .form-group label { font-size: 13px; font-weight: 600; color: var(--muted); letter-spacing: 0.3px; }
+    .form-input { background: #333; border: 1px solid var(--border); color: var(--text); font-family: var(--font-body); font-size: 15px; padding: 11px 14px; border-radius: 3px; outline: none; transition: border-color var(--t); width: 100%; }
+    .form-input:focus { border-color: #aaa; }
+    .form-select { cursor: pointer; }
+    .form-select option { background: #1f1f1f; }
+    .form-hint { font-size: 12px; color: #666; margin-top: 2px; }
+
+    /* TOGGLE */
+    .toggle-group { flex-direction: row; align-items: center; justify-content: space-between; background: #1f1f1f; border: 1px solid var(--border); border-radius: 4px; padding: 14px 16px; }
+    .toggle { width: 48px; height: 26px; border-radius: 13px; background: #555; border: none; cursor: pointer; position: relative; flex-shrink: 0; transition: background 0.3s; }
+    .toggle.on { background: var(--red); }
+    .toggle-knob { position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; background: #fff; border-radius: 50%; transition: left 0.25s ease; box-shadow: 0 1px 4px rgba(0,0,0,0.4); }
+    .toggle.on .toggle-knob { left: 25px; }
+
+    /* FORM ACTIONS */
+    .form-actions { display: flex; flex-wrap: wrap; gap: 10px; padding-top: 8px; }
+    .btn-save { background: var(--text); color: var(--black); border: none; font-family: var(--font-body); font-size: 14px; font-weight: 700; padding: 12px 28px; border-radius: 3px; cursor: pointer; letter-spacing: 0.5px; transition: all var(--t); }
+    .btn-save:hover { background: #ddd; }
+    .btn-cancel { background: none; border: 1px solid var(--border); color: var(--muted); font-family: var(--font-body); font-size: 14px; font-weight: 600; padding: 12px 24px; border-radius: 3px; cursor: pointer; transition: all var(--t); }
+    .btn-cancel:hover { border-color: #aaa; color: var(--text); }
+    .btn-delete { background: none; border: 1px solid #c0392b; color: #e74c3c; font-family: var(--font-body); font-size: 13px; font-weight: 600; padding: 12px 20px; border-radius: 3px; cursor: pointer; transition: all var(--t); margin-left: auto; }
+    .btn-delete:hover { background: rgba(231,76,60,0.1); }
+
+    /* TOAST */
+    .toast { position: fixed; bottom: 32px; left: 50%; transform: translateX(-50%) translateY(20px); background: #222; border: 1px solid #444; color: #fff; font-size: 14px; font-weight: 500; padding: 14px 28px; border-radius: 6px; box-shadow: 0 8px 30px rgba(0,0,0,0.6); opacity: 0; pointer-events: none; transition: opacity 0.3s ease, transform 0.3s ease; z-index: 100; white-space: nowrap; }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    @media (max-width: 680px) {
+      .edit-layout { flex-direction: column; align-items: center; gap: 30px; }
+      .edit-form-col { width: 100%; max-width: 400px; }
+      .avatar-wrap, .avatar { width: 100px; height: 100px; }
+      .profiles-grid { gap: 14px; }
+      .form-actions { justify-content: center; }
+      .btn-delete { margin-left: 0; }
+    }
+    @media (max-width: 420px) {
+      .avatar-wrap, .avatar { width: 80px; height: 80px; }
+      .avatar { font-size: 2.2rem; }
+      .profile-name { font-size: 12px; }
+    }
+  </style>
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="logo">STREAMFLIX</div>
+  <button class="back-btn" id="navBackBtn" onclick="window.location.href='catalogo.html'" style="display:none">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15,18 9,12 15,6"/></svg>
+    Voltar ao catálogo
+  </button>
+</nav>
+
+<!-- TELA 1: QUEM ESTÁ ASSISTINDO -->
+<main class="screen" id="screen-who">
+  <h1 class="screen-title">Quem está assistindo?</h1>
+  <div class="profiles-grid" id="grid-who"></div>
+  <button class="btn-manage" id="btn-manage">Gerenciar perfis</button>
+</main>
+
+<!-- TELA 2: GERENCIAR PERFIS -->
+<main class="screen hidden" id="screen-manage">
+  <h1 class="screen-title">Gerenciar perfis</h1>
+  <div class="profiles-grid" id="grid-manage"></div>
+  <button class="btn-manage" id="btn-back-who">← Quem está assistindo?</button>
+</main>
+
+<!-- TELA 3: EDITAR PERFIL -->
+<main class="screen hidden" id="screen-edit">
+  <h1 class="screen-title">Editar perfil</h1>
+  <div class="edit-layout">
+    <div class="edit-avatar-col">
+      <div class="edit-avatar-wrap-lg">
+        <div class="avatar" id="editAvatar" style="width:130px;height:130px;border-radius:10px;font-size:3.2rem"><span>M</span></div>
+        <button class="change-avatar-btn" id="togglePickerEdit">Alterar ícone</button>
+      </div>
+      <div class="avatar-picker" id="pickerEdit">
+        <p class="picker-label">Escolha um ícone</p>
+        <div class="avatar-options" id="editAvatarOptions"></div>
+      </div>
+    </div>
+    <div class="edit-form-col">
+      <div class="form-group">
+        <label>Nome</label>
+        <input type="text" class="form-input" id="editName" maxlength="50"/>
+      </div>
+      <div class="form-group">
+        <label>Idioma</label>
+        <select class="form-input form-select" id="editLanguage">
+          <option>Português</option><option>English</option><option>Español</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Classificação máxima</label>
+        <select class="form-input form-select" id="editRating">
+          <option>Todas</option><option>18+</option><option>16+</option><option>14+</option><option>12+</option><option>L — Livre</option>
+        </select>
+      </div>
+      <div class="form-group toggle-group">
+        <div><label>Perfil infantil</label><p class="form-hint">Acesso restrito a conteúdo infantil</p></div>
+        <button class="toggle" id="kidsToggle"><span class="toggle-knob"></span></button>
+      </div>
+      <div class="form-actions">
+        <button class="btn-save" id="btn-save-edit">Salvar</button>
+        <button class="btn-cancel" id="btn-cancel-edit">Cancelar</button>
+        <button class="btn-delete" id="btn-delete-edit">Excluir perfil</button>
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- TELA 4: CRIAR PERFIL -->
+<main class="screen hidden" id="screen-create">
+  <h1 class="screen-title">Adicionar perfil</h1>
+  <p class="screen-sub">Adicione um perfil para outra pessoa que usa sua conta.</p>
+  <div class="edit-layout centered">
+    <div class="edit-avatar-col">
+      <div class="edit-avatar-wrap-lg">
+        <div class="avatar new-avatar" id="newAvatar" style="width:130px;height:130px;border-radius:10px">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        </div>
+        <button class="change-avatar-btn" id="togglePickerCreate">Escolher ícone</button>
+      </div>
+      <div class="avatar-picker" id="pickerCreate">
+        <p class="picker-label">Escolha um ícone</p>
+        <div class="avatar-options" id="createAvatarOptions"></div>
+      </div>
+    </div>
+    <div class="edit-form-col">
+      <div class="form-group">
+        <label>Nome</label>
+        <input type="text" class="form-input" id="newName" placeholder="Nome do perfil" maxlength="50"/>
+      </div>
+      <div class="form-group toggle-group">
+        <div><label>Perfil infantil</label><p class="form-hint">Acesso restrito a conteúdo infantil</p></div>
+        <button class="toggle" id="kidsToggleCreate"><span class="toggle-knob"></span></button>
+      </div>
+      <div class="form-actions">
+        <button class="btn-save" id="btn-save-create">Continuar</button>
+        <button class="btn-cancel" id="btn-cancel-create">Cancelar</button>
+      </div>
+    </div>
+  </div>
+</main>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ============================
+   AVATAR OPTIONS
+============================ */
+const AVATARS = [
+  { icon:'M',  bg:['#e74c3c','#c0392b'] },
+  { icon:'🎬', bg:['#9b59b6','#7d3c98'] },
+  { icon:'🎵', bg:['#1abc9c','#16a085'] },
+  { icon:'🍿', bg:['#e67e22','#ca6f1e'] },
+  { icon:'⚽', bg:['#2980b9','#1a5276'] },
+  { icon:'🎮', bg:['#c0392b','#922b21'] },
+  { icon:'😊', bg:['#f39c12','#d68910'] },
+  { icon:'🌙', bg:['#8e44ad','#6c3483'] },
+  { icon:'🦁', bg:['#d35400','#a04000'] },
+];
+
+function buildPicker(containerId, onSelect) {
+  const container = document.getElementById(containerId);
+  container.innerHTML = '';
+  AVATARS.forEach((av, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'av-opt';
+    btn.dataset.index = i;
+    btn.style.background = `linear-gradient(135deg,${av.bg[0]},${av.bg[1]})`;
+    btn.innerHTML = `<span>${av.icon}</span>`;
+    btn.addEventListener('click', () => {
+      container.querySelectorAll('.av-opt').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      onSelect(av);
+    });
+    container.appendChild(btn);
+  });
+}
+
+/* ============================
+   STATE
+============================ */
+// Compatível com o formato salvo pelo catalogo.html:
+// cada perfil tem { id, name, icon, bg:[cor1,cor2], kids }
+function loadProfiles() {
+  const raw = localStorage.getItem('sf_profiles');
+  if (raw) {
+    const parsed = JSON.parse(raw);
+    // Migrar formato antigo (sem id) se necessário
+    return parsed.map((p, i) => ({
+      id:   p.id   || ('p' + (Date.now() + i)),
+      name: p.name || 'Perfil',
+      icon: p.icon || (p.name ? p.name[0].toUpperCase() : 'P'),
+      bg:   p.bg   || ['#e74c3c','#c0392b'],
+      kids: p.kids || false,
+    }));
+  }
+  return [
+    { id:'p1', name:'Principal', icon:'M',  bg:['#e74c3c','#c0392b'], kids:false },
+    { id:'p2', name:'Família',   icon:'🎬', bg:['#2980b9','#1a5276'], kids:false },
+    { id:'p3', name:'Crianças',  icon:'🎮', bg:['#f39c12','#d68910'], kids:true  },
+  ];
+}
+
+function saveProfiles(list) { localStorage.setItem('sf_profiles', JSON.stringify(list)); }
+
+function getActiveProfileId() { return localStorage.getItem('sf_activeProfileId'); }
+function setActiveProfileId(id) { localStorage.setItem('sf_activeProfileId', id); }
+
+let profiles = loadProfiles();
+let editingId = null;
+let newProfileDraft = { icon:'😊', bg:['#f39c12','#d68910'], kids:false };
+
+/* ============================
+   SCREEN NAV
+============================ */
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.add('hidden'));
+  const el = document.getElementById(id);
+  el.classList.remove('hidden');
+
+  // Mostra botão de voltar ao catálogo em qualquer tela que não seja "quem está assistindo?"
+  document.getElementById('navBackBtn').style.display = (id === 'screen-who') ? 'none' : 'flex';
+
+  if (id === 'screen-manage') renderManageProfiles();
+  if (id === 'screen-who')    renderWhoProfiles();
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+/* ============================
+   HELPERS
+============================ */
+function avatarBg(p) { return `linear-gradient(135deg,${p.bg[0]},${p.bg[1]})`; }
+
+/* ============================
+   TELA 1 — QUEM ESTÁ ASSISTINDO
+============================ */
+function renderWhoProfiles() {
+  const grid = document.getElementById('grid-who');
+  grid.innerHTML = '';
+  profiles.forEach(p => {
+    const btn = document.createElement('button');
+    btn.className = 'profile-btn';
+    btn.innerHTML = `
+      <div class="avatar-wrap">
+        <div class="avatar" style="background:${avatarBg(p)};width:130px;height:130px;border-radius:8px">
+          <span>${p.icon}</span>
+        </div>
+        <div class="avatar-ring"></div>
+        ${p.kids ? '<span class="kids-badge">KIDS</span>' : ''}
+      </div>
+      <span class="profile-name">${p.name}</span>`;
+    btn.addEventListener('click', () => {
+      setActiveProfileId(p.id);
+      window.location.href = 'catalogo.html';
+    });
+    grid.appendChild(btn);
+  });
+}
+
+/* ============================
+   TELA 2 — GERENCIAR PERFIS
+============================ */
+function renderManageProfiles() {
+  const grid = document.getElementById('grid-manage');
+  grid.innerHTML = '';
+  profiles.forEach(p => {
+    const btn = document.createElement('button');
+    btn.className = 'profile-btn editable';
+    btn.innerHTML = `
+      <div class="avatar-wrap">
+        <div class="avatar" style="background:${avatarBg(p)};width:130px;height:130px;border-radius:8px">
+          <span>${p.icon}</span>
+        </div>
+        <div class="avatar-ring"></div>
+        <div class="edit-overlay">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        </div>
+        ${p.kids ? '<span class="kids-badge">KIDS</span>' : ''}
+      </div>
+      <span class="profile-name">${p.name}</span>`;
+    btn.addEventListener('click', () => openEditScreen(p.id));
+    grid.appendChild(btn);
+  });
+
+  // Botão Adicionar
+  if (profiles.length < 5) {
+    const addBtn = document.createElement('button');
+    addBtn.className = 'profile-btn add-btn';
+    addBtn.innerHTML = `
+      <div class="avatar-wrap">
+        <div class="avatar add-avatar" style="width:130px;height:130px;border-radius:8px">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        </div>
+        <div class="avatar-ring"></div>
+      </div>
+      <span class="profile-name">Adicionar perfil</span>`;
+    addBtn.addEventListener('click', openCreateScreen);
+    grid.appendChild(addBtn);
+  }
+}
+
+/* ============================
+   TELA 3 — EDITAR PERFIL
+============================ */
+function openEditScreen(profileId) {
+  editingId = profileId;
+  const p = profiles.find(x => x.id === profileId);
+  if (!p) return;
+
+  const av = document.getElementById('editAvatar');
+  av.style.background = avatarBg(p);
+  av.innerHTML = `<span>${p.icon}</span>`;
+  document.getElementById('editName').value = p.name;
+  document.getElementById('kidsToggle').classList.toggle('on', p.kids);
+  document.getElementById('editAvatarOptions').querySelectorAll('.av-opt').forEach(b => b.classList.remove('active'));
+  showScreen('screen-edit');
+}
+
+buildPicker('editAvatarOptions', (av) => {
+  const el = document.getElementById('editAvatar');
+  el.innerHTML = `<span>${av.icon}</span>`;
+  el.style.background = `linear-gradient(135deg,${av.bg[0]},${av.bg[1]})`;
+  const idx = profiles.findIndex(p => p.id === editingId);
+  if (idx >= 0) { profiles[idx].icon = av.icon; profiles[idx].bg = av.bg; }
+});
+
+document.getElementById('kidsToggle').addEventListener('click', function() { this.classList.toggle('on'); });
+
+document.getElementById('btn-save-edit').addEventListener('click', () => {
+  const name = document.getElementById('editName').value.trim();
+  if (!name) { showToast('Digite um nome'); return; }
+  const idx = profiles.findIndex(p => p.id === editingId);
+  if (idx < 0) return;
+  profiles[idx].name = name;
+  profiles[idx].kids = document.getElementById('kidsToggle').classList.contains('on');
+  saveProfiles(profiles);
+  showToast('Perfil atualizado!');
+  showScreen('screen-manage');
+});
+
+document.getElementById('btn-delete-edit').addEventListener('click', () => {
+  if (profiles.length <= 1) { showToast('É necessário pelo menos um perfil'); return; }
+  const idx = profiles.findIndex(p => p.id === editingId);
+  if (idx < 0) return;
+  const name = profiles[idx].name;
+  // Se era o perfil ativo, remover
+  if (getActiveProfileId() === editingId) setActiveProfileId(null);
+  profiles.splice(idx, 1);
+  editingId = null;
+  saveProfiles(profiles);
+  showToast(`Perfil "${name}" excluído`);
+  showScreen('screen-manage');
+});
+
+document.getElementById('btn-cancel-edit').addEventListener('click', () => showScreen('screen-manage'));
+
+/* ============================
+   TELA 4 — CRIAR PERFIL
+============================ */
+function openCreateScreen() {
+  newProfileDraft = { icon:'😊', bg:['#f39c12','#d68910'], kids:false };
+  document.getElementById('newName').value = '';
+  const prev = document.getElementById('newAvatar');
+  prev.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>`;
+  prev.style.background = '';
+  prev.className = 'avatar new-avatar';
+  prev.style.width='130px'; prev.style.height='130px'; prev.style.borderRadius='10px';
+  document.getElementById('kidsToggleCreate').classList.remove('on');
+  document.getElementById('createAvatarOptions').querySelectorAll('.av-opt').forEach(b => b.classList.remove('active'));
+  showScreen('screen-create');
+}
+
+buildPicker('createAvatarOptions', (av) => {
+  newProfileDraft.icon = av.icon;
+  newProfileDraft.bg   = av.bg;
+  const prev = document.getElementById('newAvatar');
+  prev.innerHTML = `<span>${av.icon}</span>`;
+  prev.style.background = `linear-gradient(135deg,${av.bg[0]},${av.bg[1]})`;
+  prev.classList.remove('new-avatar');
+});
+
+document.getElementById('kidsToggleCreate').addEventListener('click', function() {
+  this.classList.toggle('on');
+  newProfileDraft.kids = this.classList.contains('on');
+});
+
+document.getElementById('btn-save-create').addEventListener('click', () => {
+  const name = document.getElementById('newName').value.trim();
+  if (!name) { showToast('Digite um nome'); return; }
+  const newP = { id:'p'+Date.now(), name, icon:newProfileDraft.icon, bg:newProfileDraft.bg, kids:newProfileDraft.kids };
+  profiles.push(newP);
+  saveProfiles(profiles);
+  showToast(`Perfil "${name}" criado!`);
+  showScreen('screen-manage');
+});
+
+document.getElementById('btn-save-create').addEventListener('click', () => {}, { once:false });
+document.getElementById('btn-cancel-create').addEventListener('click', () => showScreen('screen-manage'));
+
+/* ============================
+   NAV BUTTONS
+============================ */
+document.getElementById('btn-manage').addEventListener('click', () => showScreen('screen-manage'));
+document.getElementById('btn-back-who').addEventListener('click', () => showScreen('screen-who'));
+
+/* ============================
+   INIT — verifica query string
+   ?manage=true → abre gerenciar
+============================ */
+(function init() {
+  // Garante que perfis estejam salvos com IDs corretos
+  saveProfiles(profiles);
+
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('manage') === 'true') {
+    showScreen('screen-manage');
+  } else {
+    showScreen('screen-who');
+  }
+})();
+</script>
+</body>
+</html>
