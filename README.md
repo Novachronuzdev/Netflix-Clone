@@ -22,7 +22,7 @@ A fully responsive streaming platform interface inspired by modern services like
 
 ## 🌐 Live Demo
 
-(Coloque aqui o link do seu site depois de hospedar)
+https://netflix-clone-kappa-five-10.vercel.app/
 
 ## 📚 What I Learned
 
