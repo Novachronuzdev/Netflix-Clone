@@ -137,9 +137,34 @@
       <div class="modal-title" id="modalTitle"></div>
       <div class="modal-meta" id="modalMetaInfo"></div>
       <div class="modal-desc" id="modalDescInfo"></div>
+      <div class="modal-actions" id="modalActions">
+        <button class="modal-action-btn secondary" id="modalListBtn">
+          <span id="modalListIcon"></span>
+          <span id="modalListText">Minha Lista</span>
+        </button>
+      </div>
     </div>
   </div>
 </div>
+
+<nav class="bottom-nav" id="bottomNav">
+  <button class="bottom-nav-item active" data-view="inicio" aria-label="Início">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+    <span>Início</span>
+  </button>
+  <button class="bottom-nav-item" data-view="series" aria-label="Séries">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="15" rx="2" ry="2"/><polyline points="17 2 12 7 7 2"/></svg>
+    <span>Séries</span>
+  </button>
+  <button class="bottom-nav-item" data-view="filmes" aria-label="Filmes">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"/><line x1="7" y1="2" x2="7" y2="22"/><line x1="17" y1="2" x2="17" y2="22"/><line x1="2" y1="12" x2="22" y2="12"/><line x1="2" y1="7" x2="7" y2="7"/><line x1="2" y1="17" x2="7" y2="17"/><line x1="17" y1="17" x2="22" y2="17"/><line x1="17" y1="7" x2="22" y2="7"/></svg>
+    <span>Filmes</span>
+  </button>
+  <button class="bottom-nav-item" id="bottomNavMyList" aria-label="Minha Lista">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+    <span>Minha Lista</span>
+  </button>
+</nav>
 
 <div class="toast" id="toast"></div>
 
@@ -283,12 +308,28 @@ window.addEventListener('scroll', () => {
 });
 function setView(view) {
   document.querySelectorAll('.nav-link').forEach(l => l.classList.toggle('active', l.dataset.view === view));
+  document.querySelectorAll('.bottom-nav-item[data-view]').forEach(l => l.classList.toggle('active', l.dataset.view === view));
+  const bList = document.getElementById('bottomNavMyList');
+  if (bList) bList.classList.remove('active');
   document.getElementById('view-inicio').style.display = view === 'inicio' ? 'block' : 'none';
   document.getElementById('view-series').classList.toggle('visible', view === 'series');
   document.getElementById('view-filmes').classList.toggle('visible', view === 'filmes');
   window.scrollTo({ top: 0, behavior: view === 'inicio' ? 'smooth' : 'instant' });
 }
 document.querySelectorAll('.nav-link').forEach(btn => btn.addEventListener('click', () => setView(btn.dataset.view)));
+document.querySelectorAll('.bottom-nav-item[data-view]').forEach(btn => btn.addEventListener('click', () => setView(btn.dataset.view)));
+
+document.getElementById('bottomNavMyList').addEventListener('click', () => {
+  setView('inicio');
+  const sec = document.getElementById('sec-mylist');
+  if (sec && !sec.classList.contains('hidden')) {
+    sec.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    document.querySelectorAll('.bottom-nav-item').forEach(b => b.classList.remove('active'));
+    document.getElementById('bottomNavMyList').classList.add('active');
+  } else {
+    showToast('Sua lista está vazia');
+  }
+});
 
 /* ============================================================
    SEARCH
@@ -408,21 +449,83 @@ function renderAll() {
 /* ============================================================
    MODAL & TOAST
 ============================================================ */
+let currentModalItem = null;
+
+function updateModalListBtn(title) {
+  const inList = myList.has(title);
+  const btn = document.getElementById('modalListBtn');
+  const icon = inList
+    ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>'
+    : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>';
+  document.getElementById('modalListIcon').innerHTML = icon;
+  document.getElementById('modalListText').textContent = inList ? 'Na Minha Lista' : 'Minha Lista';
+  btn.classList.toggle('in-list', inList);
+}
+
+document.getElementById('modalListBtn').addEventListener('click', () => {
+  if (!currentModalItem) return;
+  const title = currentModalItem.title;
+  if (myList.has(title)) {
+    myList.delete(title);
+    showToast('Removido da Minha Lista');
+  } else {
+    myList.add(title);
+    showToast('Adicionado à Minha Lista');
+  }
+  saveList();
+  updateModalListBtn(title);
+  renderMyList();
+
+  // Atualiza os ícones em todos os cards que possuem esse título
+  document.querySelectorAll('.card').forEach(c => {
+    const t = c.querySelector('.card-title-text');
+    if (t && t.textContent === title) {
+      const btn = c.querySelector('.card-btn:not(.play-btn)');
+      if (btn) {
+        btn.innerHTML = myList.has(title)
+          ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>'
+          : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>';
+      }
+    }
+  });
+});
+
 function openModal(url, title, meta, desc) {
-  document.getElementById('modalIframe').src = url + '?autoplay=1';
+  currentModalItem = { url, title, meta, desc };
+  const autoplayUrl = url + (url.includes('?') ? '&' : '?') + 'autoplay=1';
+  document.getElementById('modalIframe').src = autoplayUrl;
   document.getElementById('modalTitle').textContent = title;
   document.getElementById('modalMetaInfo').innerHTML = meta.split(' · ').map(m=>`<span>${m}</span>`).join('');
   document.getElementById('modalDescInfo').textContent = desc;
+  updateModalListBtn(title);
   document.getElementById('modal').classList.add('open');
   document.body.style.overflow = 'hidden';
 }
-function closeModal() { document.getElementById('modal').classList.remove('open'); document.getElementById('modalIframe').src=''; document.body.style.overflow=''; }
-function closeModalOutside(e) { if (e.target===document.getElementById('modal')) closeModal(); }
+
+function closeModal() {
+  document.getElementById('modal').classList.remove('open');
+  document.getElementById('modalIframe').src = '';
+  document.body.style.overflow = '';
+  currentModalItem = null;
+}
+
+function closeModalOutside(e) {
+  if (e.target === document.getElementById('modal')) closeModal();
+}
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && document.getElementById('modal').classList.contains('open')) {
+    closeModal();
+  }
+});
 
 let toastTimer;
 function showToast(msg) {
-  const t = document.getElementById('toast'); t.textContent=msg; t.classList.add('show');
-  clearTimeout(toastTimer); toastTimer=setTimeout(()=>t.classList.remove('show'),3000);
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 3000);
 }
 
 renderAll();

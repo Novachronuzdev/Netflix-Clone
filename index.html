@@ -13,7 +13,7 @@
   <div class="logo">STREAMFLIX</div>
   <button class="back-btn" id="navBackBtn" onclick="window.location.href='catalogo.html'" style="display:none">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15,18 9,12 15,6"/></svg>
-    Voltar ao catálogo
+    <span class="back-btn-text">Voltar ao catálogo</span>
   </button>
 </nav>
 
@@ -37,7 +37,7 @@
   <div class="edit-layout">
     <div class="edit-avatar-col">
       <div class="edit-avatar-wrap-lg">
-        <div class="avatar" id="editAvatar" style="width:130px;height:130px;border-radius:10px;font-size:3.2rem"><span>M</span></div>
+        <div class="avatar" id="editAvatar"><span>M</span></div>
         <button class="change-avatar-btn" id="togglePickerEdit">Alterar ícone</button>
       </div>
       <div class="avatar-picker" id="pickerEdit">
@@ -82,7 +82,7 @@
   <div class="edit-layout centered">
     <div class="edit-avatar-col">
       <div class="edit-avatar-wrap-lg">
-        <div class="avatar new-avatar" id="newAvatar" style="width:130px;height:130px;border-radius:10px">
+        <div class="avatar new-avatar" id="newAvatar">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
         </div>
         <button class="change-avatar-btn" id="togglePickerCreate">Escolher ícone</button>
@@ -212,7 +212,7 @@ function renderWhoProfiles() {
     btn.className = 'profile-btn';
     btn.innerHTML = `
       <div class="avatar-wrap">
-        <div class="avatar" style="background:${avatarBg(p)};width:130px;height:130px;border-radius:8px">
+        <div class="avatar" style="background:${avatarBg(p)}">
           <span>${p.icon}</span>
         </div>
         <div class="avatar-ring"></div>
@@ -238,7 +238,7 @@ function renderManageProfiles() {
     btn.className = 'profile-btn editable';
     btn.innerHTML = `
       <div class="avatar-wrap">
-        <div class="avatar" style="background:${avatarBg(p)};width:130px;height:130px;border-radius:8px">
+        <div class="avatar" style="background:${avatarBg(p)}">
           <span>${p.icon}</span>
         </div>
         <div class="avatar-ring"></div>
@@ -257,7 +257,7 @@ function renderManageProfiles() {
     addBtn.className = 'profile-btn add-btn';
     addBtn.innerHTML = `
       <div class="avatar-wrap">
-        <div class="avatar add-avatar" style="width:130px;height:130px;border-radius:8px">
+        <div class="avatar add-avatar">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
         </div>
         <div class="avatar-ring"></div>
@@ -332,7 +332,6 @@ function openCreateScreen() {
   prev.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>`;
   prev.style.background = '';
   prev.className = 'avatar new-avatar';
-  prev.style.width='130px'; prev.style.height='130px'; prev.style.borderRadius='10px';
   document.getElementById('kidsToggleCreate').classList.remove('on');
   document.getElementById('createAvatarOptions').querySelectorAll('.av-opt').forEach(b => b.classList.remove('active'));
   showScreen('screen-create');
